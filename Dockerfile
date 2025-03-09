@@ -1,17 +1,20 @@
-# Utilisation d’une image Python légère
+# Utiliser une image Python légère
 FROM python:3.9-slim
 
+# Définir le répertoire de travail
 WORKDIR /app
 
+# Copier les fichiers nécessaires
+COPY . .  
+
+# Vérifier le contenu pour débogage (supprimer après validation)
+RUN ls -la
+
 # Installer les dépendances
-COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le code source
-COPY . .
-
-# Exposer le port 8000
+# Exposer le port utilisé par FastAPI
 EXPOSE 8000
 
-# Commande pour exécuter l'API
+# Lancer l'application avec Uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

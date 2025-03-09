@@ -37,23 +37,55 @@ app.add_middleware(
 )
 
 # Définition des entrées pour la prédiction
+# Définition des entrées pour la prédiction (30 features)
 class PredictionInput(BaseModel):
     feature1: float
     feature2: float
     feature3: float
     feature4: float
     feature5: float
+    feature6: float
+    feature7: float
+    feature8: float
+    feature9: float
+    feature10: float
+    feature11: float
+    feature12: float
+    feature13: float
+    feature14: float
+    feature15: float
+    feature16: float
+    feature17: float
+    feature18: float
+    feature19: float
+    feature20: float
+    feature21: float
+    feature22: float
+    feature23: float
+    feature24: float
+    feature25: float
+    feature26: float
+    feature27: float
+    feature28: float
+    feature29: float
+    feature30: float
+
 
 @app.post("/predict")
 def predict(data: PredictionInput):
     """
-    Prend une requête avec 5 features et retourne une prédiction.
+    Prend une requête avec 30 features et retourne une prédiction.
     """
     try:
-        features = np.array([[data.feature1, data.feature2, data.feature3, data.feature4, data.feature5]])
+        # Extraction des valeurs sous forme de liste
+        features = np.array([[getattr(data, f"feature{i}") for i in range(1, 31)]])
+
+        # Prédiction
         prediction = model.predict(features)[0]
+
         logger.info(f"🔍 Prédiction effectuée : {prediction}")
         return {"prediction": float(prediction)}
+
     except Exception as e:
         logger.error(f"❌ Erreur lors de la prédiction : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne du serveur lors de la prédiction.")
