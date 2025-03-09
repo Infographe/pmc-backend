@@ -27,13 +27,19 @@ except Exception as e:
 # Création de l'API
 app = FastAPI()
 
-# 🔹 Gestion des permissions CORS (Autoriser toutes les requêtes)
+# 🔹 Configuration CORS pour autoriser les requêtes du frontend
+origins = [
+    "https://pmc-frontend-gvo6.onrender.com",  # ✅ URL de ton frontend sur Render
+    "http://localhost:4200",  # ✅ Pour développement local
+    "http://127.0.0.1:4200"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,  # ✅ Liste des origines autorisées
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # ✅ Autoriser toutes les méthodes (GET, POST, etc.)
+    allow_headers=["*"],  # ✅ Autoriser tous les headers
 )
 
 # Définition des entrées pour la prédiction
