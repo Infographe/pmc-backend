@@ -36,7 +36,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # ✅ Liste des origines autorisées
+    allow_origins="https://pmc-frontend-gvo6.onrender.com",  # ✅ Liste des origines autorisées
     allow_credentials=True,
     allow_methods=["*"],  # ✅ Autoriser toutes les méthodes (GET, POST, etc.)
     allow_headers=["*"],  # ✅ Autoriser tous les headers
