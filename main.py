@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Vérifier si le modèle existe avant de le charger
-model_path = "models/average_model.pkl"
+model_path = "models/XGBoost_best_model.pkl"
 
 if not os.path.exists(model_path):
     raise FileNotFoundError(f"❌ Modèle non trouvé : {model_path}. Exécutez 'train_model.py' pour le générer.")
@@ -42,7 +42,6 @@ app.add_middleware(
     allow_headers=["*"],  # ✅ Autoriser tous les headers
 )
 
-# Définition des entrées pour la prédiction
 # Définition des entrées pour la prédiction (30 features)
 class PredictionInput(BaseModel):
     feature1: float
