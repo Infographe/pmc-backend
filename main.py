@@ -1,58 +1,21 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import dill
+import pickle
 import os
 import logging
-from typing import List
-import traceback  # Ajout pour afficher l'erreur complète
-import os
+import traceback
 import uvicorn
 
-
-# Création de l'API
-app = FastAPI()
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # Render assigne un port automatiquement
-    uvicorn.run(app, host="0.0.0.0", port=port)
-
-
-# Configuration des logs
+# 📌 Configuration des logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-import pickle
-import os
+# 📌 Création de l'API
+app = FastAPI()
 
-def load_model(model_path):
-    try:
-        print(f"🔍 Tentative de chargement du modèle : {model_path}")
-        with open(model_path, "rb") as file:
-            model = pickle.load(file)
-        print(f"✅ Modèle chargé avec succès : {model_path}")
-        return model
-    except Exception as e:
-        print(f"❌ Erreur lors du chargement du modèle {model_path} : {str(e)}")
-        return None  # Retourne None si le chargement échoue
-
-# Charger les modèles
-ml_model_path = "models/LightGBM_best_model_2.pkl"
-dl_model_path = "models/XGBoost_best_model.pkl"
-
-print(f"📂 Contenu du dossier models : {os.listdir('models')}")  # Vérifier si les fichiers existent bien
-
-ml_model = load_model(ml_model_path)
-dl_model = load_model(dl_model_path)
-
-# # Définition des chemins des modèles
-# ml_model_path = "models/LightGBM_best_model_2.pkl"
-# dl_model_path = "models/XGBoost_best_model.pkl"
-
-models = {}
-
-# Configuration CORS pour autoriser les requêtes du frontend
+# 📌 Configuration CORS pour autoriser les requêtes du frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -61,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Définition des features sous forme d'objet
+# 📌 Définition des features sous forme d'objet
 class FeatureInput(BaseModel):
     Cyclepds: float
     region: float
@@ -98,19 +61,40 @@ class PredictionInput(BaseModel):
     model_type: str  # "ml" ou "dl"
     features: dict  # Attente d'un objet JSON avec des clés numériques
 
-
-# Chargement des modèles
-for model_choice, path in {"ml": ml_model_path, "dl": dl_model_path}.items():
-    if os.path.exists(path):
-        try:
-            with open(path, "rb") as f:
-                models[model_choice] = dill.load(f)
-            logger.info(f"✅ Modèle {model_choice.upper()} chargé avec succès depuis {path}")
-        except Exception as e:
-            logger.error(f"❌ Erreur lors du chargement du modèle {model_choice.upper()} : {str(e)}")
-    else:
-        logger.warning(f"⚠️ Modèle {model_choice.upper()} non trouvé à {path}")
+# 📌 Fonction pour charger les modèles
+def load_model(model_path):
+    try:
+        if not os.path.exists(model_path):
+            logger.error(f"❌ Le fichier {model_path} est introuvable.")
+            return None
         
+        with open(model_path, "rb") as file:
+            model = pickle.load(file)
+        
+        if not hasattr(model, "predict") or not callable(model.predict):
+            raise ValueError(f"⚠️ Le modèle chargé depuis {model_path} ne possède pas de méthode `predict()`.")
+
+        logger.info(f"✅ Modèle chargé avec succès : {model_path}")
+        return model
+    except Exception as e:
+        logger.error(f"❌ Erreur lors du chargement du modèle {model_path} : {str(e)}")
+        logger.error(traceback.format_exc())
+        return None
+
+# 📌 Définition des chemins des modèles
+ml_model_path = "models/LightGBM_best_model_2.pkl"
+dl_model_path = "models/XGBoost_best_model.pkl"
+
+# 📌 Chargement des modèles
+models = {
+    "ml": load_model(ml_model_path),
+    "dl": load_model(dl_model_path),
+}
+
+# 📌 Vérification du contenu du dossier models
+logger.info(f"📂 Contenu du dossier models : {os.listdir('models')}")
+
+# 📌 Routes API
 @app.get("/")
 def root():
     return {"message": "Bienvenue sur l'API de prédiction 🎉"}
@@ -121,40 +105,34 @@ def health():
 
 @app.post("/predict")
 def predict(data: PredictionInput):
-    # logger.info(f"📩 Données reçues par l'API : {data.dict()}")  # ✅ Debugging
+    logger.info(f"📩 Données reçues : {data}")
 
-    # if data.model_type not in models:
-    #     return JSONResponse(status_code=400, content={"message": "Modèle inconnu. Choisissez 'ml' ou 'dl'."})
-
-    # try:
-    #     # Vérification du format des features
-    #     feature_values = list(data.features.values())  # ✅ Extraire les valeurs
-
-    #     logger.info(f"🔍 Features après conversion : {feature_values}")
-
-    #     prediction = models[data.model_type].predict([feature_values])[0]
-    #     logger.info(f"🧠 Prédiction du modèle : {prediction}")
-
-    #     return {"prediction": float(prediction)}
-
-    # except Exception as e:
-    #     logger.error(f"❌ Erreur lors de la prédiction : {str(e)}")
-    #     return JSONResponse(status_code=500, content={"message": "Erreur lors de la prédiction."})
-    print("📩 Données reçues :", data)
+    # Sélection du modèle
+    model = models.get(data.model_type)
     
-    model = ml_model if data.model_type == "ml" else dl_model
-
     if model is None:
-        return {"error": "Modèle non chargé. Vérifiez les logs backend."}
-
-    print(f"🚀 Modèle utilisé : {type(model)}")  # Debugging du type du modèle
+        logger.error(f"❌ Modèle {data.model_type} non chargé.")
+        raise HTTPException(status_code=500, detail=f"Modèle {data.model_type} non disponible.")
 
     try:
-        if not hasattr(model, "predict"):
-            raise AttributeError(f"⚠️ L'objet modèle {type(model)} ne possède pas de méthode `predict()`")
+        # Vérification de `predict()`
+        if not hasattr(model, "predict") or not callable(model.predict):
+            raise AttributeError(f"⚠️ L'objet modèle {type(model)} ne possède pas de méthode `predict()` ou n'est pas callable.")
 
-        prediction = model.predict([data.features])
+        # Conversion des features en liste
+        features_list = list(data.features.values())
+
+        # Prédiction
+        prediction = model.predict([features_list])
+
+        logger.info(f"✅ Prédiction effectuée : {prediction.tolist()}")
         return {"prediction": prediction.tolist()}
     except Exception as e:
-        print(f"❌ Erreur lors de la prédiction : {str(e)}")
-        return {"error": f"Erreur lors de la prédiction : {str(e)}"}
+        logger.error(f"❌ Erreur lors de la prédiction : {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la prédiction : {str(e)}")
+
+# 📌 Lancement du serveur FastAPI (pour Render)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # Render assigne un port automatiquement
+    uvicorn.run(app, host="0.0.0.0", port=port)
