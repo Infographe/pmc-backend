@@ -7,10 +7,17 @@ import os
 import logging
 from typing import List
 import traceback  # Ajout pour afficher l'erreur complète
+import os
+import uvicorn
 
 
 # Création de l'API
 app = FastAPI()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # Render assigne un port automatiquement
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 # Configuration des logs
 logging.basicConfig(level=logging.INFO)
