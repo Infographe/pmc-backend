@@ -81,6 +81,14 @@ for model_choice, path in {"ml": ml_model_path, "dl": dl_model_path}.items():
     else:
         logger.warning(f"⚠️ Modèle {model_choice.upper()} non trouvé à {path}")
         
+@app.get("/")
+def root():
+    return {"message": "Bienvenue sur l'API de prédiction 🎉"}
+
+@app.get("/health")
+def health():
+    return {"status": "API is running 🚀"}
+
 @app.post("/predict")
 def predict(data: PredictionInput):
     logger.info(f"📩 Données reçues par l'API : {data.dict()}")  # ✅ Debugging
