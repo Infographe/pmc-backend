@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Définition des chemins des modèles
 ml_model_path = "models/LightGBM_best_model_2.pkl"
-dl_model_path = "models/average_model.pkl"
+# dl_model_path = "models/average_model.pkl"
 
 models = {}
 
@@ -35,7 +35,8 @@ class PredictionInput(BaseModel):
     model_type: str  # "ml" ou "dl"
 
 # Chargement des modèles
-for model_type, path in {"ml": ml_model_path, "dl": dl_model_path}.items():
+# for model_type, path in {"ml": ml_model_path, "dl": dl_model_path}.items():
+for model_type, path in {"ml": ml_model_path}.items():
     if os.path.exists(path):
         try:
             with open(path, "rb") as f:
