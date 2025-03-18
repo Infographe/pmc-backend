@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Définition des chemins des modèles
 ml_model_path = "models/LightGBM_best_model_2.pkl"
-dl_model_path = "models/average_model.pkl"
+dl_model_path = "models/XGBoost_best_model.pkl"
 
 models = {}
 
