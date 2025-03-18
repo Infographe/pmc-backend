@@ -23,9 +23,32 @@ if __name__ == "__main__":
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Définition des chemins des modèles
+import pickle
+import os
+
+def load_model(model_path):
+    try:
+        print(f"🔍 Tentative de chargement du modèle : {model_path}")
+        with open(model_path, "rb") as file:
+            model = pickle.load(file)
+        print(f"✅ Modèle chargé avec succès : {model_path}")
+        return model
+    except Exception as e:
+        print(f"❌ Erreur lors du chargement du modèle {model_path} : {str(e)}")
+        return None  # Retourne None si le chargement échoue
+
+# Charger les modèles
 ml_model_path = "models/LightGBM_best_model_2.pkl"
 dl_model_path = "models/XGBoost_best_model.pkl"
+
+print(f"📂 Contenu du dossier models : {os.listdir('models')}")  # Vérifier si les fichiers existent bien
+
+ml_model = load_model(ml_model_path)
+dl_model = load_model(dl_model_path)
+
+# # Définition des chemins des modèles
+# ml_model_path = "models/LightGBM_best_model_2.pkl"
+# dl_model_path = "models/XGBoost_best_model.pkl"
 
 models = {}
 
@@ -98,22 +121,40 @@ def health():
 
 @app.post("/predict")
 def predict(data: PredictionInput):
-    logger.info(f"📩 Données reçues par l'API : {data.dict()}")  # ✅ Debugging
+    # logger.info(f"📩 Données reçues par l'API : {data.dict()}")  # ✅ Debugging
 
-    if data.model_type not in models:
-        return JSONResponse(status_code=400, content={"message": "Modèle inconnu. Choisissez 'ml' ou 'dl'."})
+    # if data.model_type not in models:
+    #     return JSONResponse(status_code=400, content={"message": "Modèle inconnu. Choisissez 'ml' ou 'dl'."})
+
+    # try:
+    #     # Vérification du format des features
+    #     feature_values = list(data.features.values())  # ✅ Extraire les valeurs
+
+    #     logger.info(f"🔍 Features après conversion : {feature_values}")
+
+    #     prediction = models[data.model_type].predict([feature_values])[0]
+    #     logger.info(f"🧠 Prédiction du modèle : {prediction}")
+
+    #     return {"prediction": float(prediction)}
+
+    # except Exception as e:
+    #     logger.error(f"❌ Erreur lors de la prédiction : {str(e)}")
+    #     return JSONResponse(status_code=500, content={"message": "Erreur lors de la prédiction."})
+    print("📩 Données reçues :", data)
+    
+    model = ml_model if data.model_type == "ml" else dl_model
+
+    if model is None:
+        return {"error": "Modèle non chargé. Vérifiez les logs backend."}
+
+    print(f"🚀 Modèle utilisé : {type(model)}")  # Debugging du type du modèle
 
     try:
-        # Vérification du format des features
-        feature_values = list(data.features.values())  # ✅ Extraire les valeurs
+        if not hasattr(model, "predict"):
+            raise AttributeError(f"⚠️ L'objet modèle {type(model)} ne possède pas de méthode `predict()`")
 
-        logger.info(f"🔍 Features après conversion : {feature_values}")
-
-        prediction = models[data.model_type].predict([feature_values])[0]
-        logger.info(f"🧠 Prédiction du modèle : {prediction}")
-
-        return {"prediction": float(prediction)}
-
+        prediction = model.predict([data.features])
+        return {"prediction": prediction.tolist()}
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la prédiction : {str(e)}")
-        return JSONResponse(status_code=500, content={"message": "Erreur lors de la prédiction."})
+        print(f"❌ Erreur lors de la prédiction : {str(e)}")
+        return {"error": f"Erreur lors de la prédiction : {str(e)}"}
