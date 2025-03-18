@@ -15,26 +15,19 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Vérifier si les modèles existent avant de les charger
-ml_model_path = "models/LightGBM_best_model 2.pkl"
-# ml_model_path = "models/model.pkl"
+# Définition des chemins des modèles
+ml_model_path = "models/LightGBM_best_model_2.pkl"
 dl_model_path = "models/average_model.pkl"
 
 models = {}
 
 # Configuration CORS pour autoriser les requêtes du frontend
-origins = [
-    "https://pmc-frontend-gvo6.onrender.com",  # URL du frontend sur Render
-    "http://localhost:4200",  # Pour développement local
-    "http://127.0.0.1:4200"
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Liste des origines autorisées
+    allow_origins=["*"],  # Autorise toutes les origines (à adapter en prod)
     allow_credentials=True,
-    allow_methods=["*"],  # Autoriser toutes les méthodes (GET, POST, etc.)
-    allow_headers=["*"],  # Autoriser tous les headers
+    allow_methods=["*"],  # Autorise toutes les méthodes (GET, POST, etc.)
+    allow_headers=["*"],  # Autorise tous les headers
 )
 
 class PredictionInput(BaseModel):
@@ -55,9 +48,9 @@ for model_type, path in {"ml": ml_model_path, "dl": dl_model_path}.items():
 
 @app.post("/predict")
 def predict(data: PredictionInput):
-    print(f"🔍 Features reçues : {data.features}")
-    print(f"📌 Nombre de features reçues : {len(data.features)}")
-    print(f"📊 Modèle sélectionné : {data.model_type}")
+    logger.info(f"🔍 Features reçues : {data.features}")
+    logger.info(f"📌 Nombre de features reçues : {len(data.features)}")
+    logger.info(f"📊 Modèle sélectionné : {data.model_type}")
 
     # Vérification si le modèle existe
     if data.model_type not in models:
@@ -74,10 +67,7 @@ def predict(data: PredictionInput):
     try:
         # Prédiction
         prediction = models[data.model_type].predict([data.features])[0]
-
-        # Debugging pour vérifier la variabilité des prédictions
-        print(f"🧠 Prédiction du modèle : {prediction}")
-
+        logger.info(f"🧠 Prédiction du modèle : {prediction}")
         return {"prediction": float(prediction)}
 
     except Exception as e:
