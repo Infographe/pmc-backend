@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import numpy as np
 import dill
 import pickle
 import os
@@ -104,20 +105,18 @@ def health():
     return {"status": "API is running 🚀"}
 
 @app.post("/predict")
-def predict(data: PredictionInput):
+async def predict(data: dict):
     try:
-        model = models.get(data.model_type)
-        if model is None:
-            raise HTTPException(status_code=500, detail="Modèle non disponible.")
+        print("📡 Données reçues :", data)  # 🔍 Debugging
+        if "features" not in data:
+            raise HTTPException(status_code=400, detail="Les features sont manquantes.")
 
-        # Vérifier si le modèle a une méthode `predict()`
-        if not hasattr(model, "predict") or not callable(model.predict):
-            raise AttributeError("⚠️ Le modèle ne possède pas de méthode `predict()`.")
+        # Exemple de simulation de prédiction
+        prediction = np.random.rand() * 10  # Simule un modèle
+        print("✅ Prédiction générée :", prediction)
 
-        features_list = list(data.features.values())
-        prediction = model.predict([features_list])
+        return {"prediction": round(prediction, 2)}  # ✅ Renvoie un float bien formaté
 
-        # Convertir la prédiction en float pour éviter les erreurs Angular
-        return {"prediction": [float(pred) for pred in prediction.tolist()]}
     except Exception as e:
+        print("❌ Erreur lors de la prédiction :", str(e))
         return {"error": f"Erreur de prédiction : {str(e)}"}
