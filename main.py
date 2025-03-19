@@ -105,34 +105,19 @@ def health():
 
 @app.post("/predict")
 def predict(data: PredictionInput):
-    logger.info(f"📩 Données reçues : {data}")
-
-    # Sélection du modèle
-    model = models.get(data.model_type)
-    
-    if model is None:
-        logger.error(f"❌ Modèle {data.model_type} non chargé.")
-        raise HTTPException(status_code=500, detail=f"Modèle {data.model_type} non disponible.")
-
     try:
-        # Vérification de `predict()`
+        model = models.get(data.model_type)
+        if model is None:
+            raise HTTPException(status_code=500, detail="Modèle non disponible.")
+
+        # Vérifier si le modèle a une méthode `predict()`
         if not hasattr(model, "predict") or not callable(model.predict):
-            raise AttributeError(f"⚠️ L'objet modèle {type(model)} ne possède pas de méthode `predict()` ou n'est pas callable.")
+            raise AttributeError("⚠️ Le modèle ne possède pas de méthode `predict()`.")
 
-        # Conversion des features en liste
         features_list = list(data.features.values())
-
-        # Prédiction
         prediction = model.predict([features_list])
 
-        logger.info(f"✅ Prédiction effectuée : {prediction.tolist()}")
-        return {"prediction": prediction.tolist()}
+        # Convertir la prédiction en float pour éviter les erreurs Angular
+        return {"prediction": [float(pred) for pred in prediction.tolist()]}
     except Exception as e:
-        logger.error(f"❌ Erreur lors de la prédiction : {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la prédiction : {str(e)}")
-
-# 📌 Lancement du serveur FastAPI (pour Render)
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # Render assigne un port automatiquement
-    uvicorn.run(app, host="0.0.0.0", port=port)
+        return {"error": f"Erreur de prédiction : {str(e)}"}
