@@ -1,0 +1,32 @@
+2025-04-03 10:43:46,177 - INFO - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+2025-04-03 10:43:46,177 - INFO - NumExpr defaulting to 8 threads.
+2025-04-03 10:43:47,350 - INFO - Modèle chargé avec succès : models/xgboost_model.joblib
+2025-04-03 10:43:47,350 - INFO - Contenu du dossier models : ['LightGBM_best_model.pkl', 'XGBoost_best_model.pkl', 'xgboost_model.joblib', 'modele_moyenne.pkl', 'LightGBM_best_model_2.pkl']
+2025-04-03 10:58:19,252 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 10:58:19,254 - INFO - Prédiction générée : 7.81803571364406
+2025-04-03 13:36:02,327 - INFO - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+2025-04-03 13:36:02,327 - INFO - NumExpr defaulting to 8 threads.
+2025-04-03 13:36:03,813 - INFO - Modèle chargé avec succès : models/xgboost_model.joblib
+2025-04-03 13:36:03,814 - INFO - Contenu du dossier models : ['LightGBM_best_model.pkl', 'XGBoost_best_model.pkl', 'xgboost_model.joblib', 'modele_moyenne.pkl', 'LightGBM_best_model_2.pkl']
+2025-04-03 14:02:18,083 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:18,087 - INFO - Prédiction générée : 2.7471792177484744
+2025-04-03 14:02:20,751 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:20,751 - INFO - Prédiction générée : 4.869672167007061
+2025-04-03 14:02:22,201 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:22,202 - INFO - Prédiction générée : 8.046900625749249
+2025-04-03 14:02:23,602 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:23,602 - INFO - Prédiction générée : 8.215521894120567
+2025-04-03 14:02:25,084 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:25,084 - INFO - Prédiction générée : 4.525646791295355
+2025-04-03 14:02:26,585 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:26,585 - INFO - Prédiction générée : 4.415574534317328
+2025-04-03 14:02:28,069 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:28,069 - INFO - Prédiction générée : 8.06369170039662
+2025-04-03 14:02:32,651 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:32,651 - INFO - Prédiction générée : 8.460506718564345
+2025-04-03 14:02:34,150 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:34,151 - INFO - Prédiction générée : 2.548771497736336
+2025-04-03 14:02:36,084 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:02:36,085 - INFO - Prédiction générée : 3.9496949708056905
+2025-04-03 14:20:45,219 - INFO - Requête POST reçue sur '/predict'
+2025-04-03 14:20:45,221 - INFO - Prédiction générée : 8.363961911371058

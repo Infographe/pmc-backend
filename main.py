@@ -4,19 +4,33 @@ from pydantic import BaseModel
 import numpy as np
 import dill
 import pickle
-import os
-import logging
 import traceback
 import uvicorn
+import os
+import logging
 
-# 📌 Configuration des logs
-logging.basicConfig(level=logging.INFO)
+# uvicorn main:app --reload 
+
+# Crée automatiquement le dossier "logs/" s'il n'existe pas
+os.makedirs("logs", exist_ok=True)
+
+# Configure le logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("logs/api_logs.log"),  # Ce fichier sera créé s’il n’existe pas
+        logging.StreamHandler()  # Affiche aussi les logs dans la console
+    ]
+)
+
+# Création du logger principal
 logger = logging.getLogger(__name__)
 
-# 📌 Création de l'API
+# Création de l'API
 app = FastAPI()
 
-# 📌 Configuration CORS pour autoriser les requêtes du frontend
+# Configuration CORS pour autoriser les requêtes du frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,7 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 📌 Définition des features sous forme d'objet
+# Définition des features sous forme d'objet
 class FeatureInput(BaseModel):
     Cyclepds: float
     region: float
@@ -62,11 +76,11 @@ class PredictionInput(BaseModel):
     model_type: str  # "ml" ou "dl"
     features: dict  # Attente d'un objet JSON avec des clés numériques
 
-# 📌 Fonction pour charger les modèles
+# Fonction pour charger les modèles
 def load_model(model_path):
     try:
         if not os.path.exists(model_path):
-            logger.error(f"❌ Le fichier {model_path} est introuvable.")
+            logger.error(f"Le fichier {model_path} est introuvable.")
             return None
         
         with open(model_path, "rb") as file:
@@ -75,48 +89,54 @@ def load_model(model_path):
         if not hasattr(model, "predict") or not callable(model.predict):
             raise ValueError(f"⚠️ Le modèle chargé depuis {model_path} ne possède pas de méthode `predict()`.")
 
-        logger.info(f"✅ Modèle chargé avec succès : {model_path}")
+        logger.info(f"Modèle chargé avec succès : {model_path}")
         return model
     except Exception as e:
-        logger.error(f"❌ Erreur lors du chargement du modèle {model_path} : {str(e)}")
+        logger.error(f"Erreur lors du chargement du modèle {model_path} : {str(e)}")
         logger.error(traceback.format_exc())
         return None
 
-# 📌 Définition des chemins des modèles
-ml_model_path = "models/LightGBM_best_model_2.pkl"
-dl_model_path = "models/XGBoost_best_model.pkl"
+# Définition des chemins des modèles
+ml_model_path = "models/xgboost_model.joblib"
+# dl_model_path = "models/XGBoost_best_model.pkl"
 
-# 📌 Chargement des modèles
+# Chargement des modèles
 models = {
     "ml": load_model(ml_model_path),
-    "dl": load_model(dl_model_path),
+    # "dl": load_model(dl_model_path),
 }
 
-# 📌 Vérification du contenu du dossier models
-logger.info(f"📂 Contenu du dossier models : {os.listdir('models')}")
+# Vérification du contenu du dossier models
+logger.info(f"Contenu du dossier models : {os.listdir('models')}")
 
-# 📌 Routes API
+# Routes API
 @app.get("/")
 def root():
+    logger.info("Requête GET reçue sur l'endpoint '/'")
     return {"message": "Bienvenue sur l'API de prédiction 🎉"}
 
 @app.get("/health")
 def health():
+    logger.info("Requête GET reçue sur l'endpoint '/health'")
     return {"status": "API is running 🚀"}
 
 @app.post("/predict")
 async def predict(data: dict):
     try:
-        print("📡 Données reçues :", data)  # 🔍 Debugging
+        logger.info("Requête POST reçue sur '/predict'")
+        logger.debug(f"Données reçues : {data}")
+
         if "features" not in data:
+            logger.warning("Aucune clé 'features' dans la requête")
             raise HTTPException(status_code=400, detail="Les features sont manquantes.")
 
-        # Exemple de simulation de prédiction
-        prediction = np.random.rand() * 10  # Simule un modèle
-        print("✅ Prédiction générée :", prediction)
+        # Simulation de prédiction (remplacer par appel réel au modèle)
+        prediction = np.random.rand() * 10
+        logger.info(f"Prédiction générée : {prediction}")
 
-        return {"prediction": round(prediction, 2)}  # ✅ Renvoie un float bien formaté
+        return {"prediction": round(prediction, 2)}
 
     except Exception as e:
-        print("❌ Erreur lors de la prédiction :", str(e))
+        logger.error(f"Erreur lors de la prédiction : {str(e)}")
+        logger.error(traceback.format_exc())
         return {"error": f"Erreur de prédiction : {str(e)}"}

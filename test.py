@@ -1,15 +1,27 @@
-import dill
-import numpy as np
+# main.py
 
-# Chemin du modèle
-ml_model_path = "models/LightGBM_best_model_2.pkl"
+from fastapi import FastAPI
+import logging
+import os
 
-# Chargement
-with open(ml_model_path, "rb") as f:
-    model = dill.load(f)
+# Création du dossier logs si besoin
+os.makedirs("logs", exist_ok=True)
 
-# Test avec des valeurs arbitraires
-features = np.array([[111, 30, 166, 195, 288, 10, 20, 0.5, 1, 0, 70, 80, 90, 60, 100, 150, 2, 4, 8, 15, 12, 150, 25, 30, 40, 5, 8, 3, 9, 7]])
-prediction = model.predict(features)
+# Configuration des logs
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("logs/api_logs.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-print(f"✅ Prédiction réussie : {prediction}")
+# Création de l'app FastAPI
+app = FastAPI()
+
+@app.get("/")
+def root():
+    logger.info("Appel à l'endpoint racine /")
+    return {"message": "API OK"}
